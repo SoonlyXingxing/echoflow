@@ -8,8 +8,6 @@ type ProsodyCanvasProps = {
   threshold?: number
 }
 
-type TwoDContext = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D
-
 const toY = (value: number, height: number) => {
   const max = 320
   const min = 70
