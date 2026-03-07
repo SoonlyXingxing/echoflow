@@ -22,6 +22,11 @@ const isTwoDContext = (context: unknown): context is TwoDContext => {
   return typeof context === 'object' && context !== null && 'clearRect' in context && 'bezierCurveTo' in context
 }
 
+const getBackgroundContext = (target: OffscreenCanvas | HTMLCanvasElement): TwoDContext | null => {
+  const rawContext = target.getContext('2d')
+  return isTwoDContext(rawContext) ? rawContext : null
+}
+
 export function ProsodyCanvas({ originF0, userF0 = [], currentTime, duration, threshold = 18 }: ProsodyCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const bgCanvasRef = useRef<OffscreenCanvas | HTMLCanvasElement | null>(null)
@@ -39,9 +44,8 @@ export function ProsodyCanvas({ originF0, userF0 = [], currentTime, duration, th
     target.width = width
     target.height = height
 
-    const rawContext = target.getContext('2d')
-    if (!isTwoDContext(rawContext)) return
-    const bgCtx = rawContext
+    const bgCtx = getBackgroundContext(target)
+    if (!bgCtx) return
 
     bgCtx.clearRect(0, 0, width, height)
     bgCtx.fillStyle = '#f8fafc'
@@ -70,6 +74,7 @@ export function ProsodyCanvas({ originF0, userF0 = [], currentTime, duration, th
         bgCtx.bezierCurveTo(c1x, prevY, c2x, y, x, y)
       }
     })
+
     bgCtx.stroke()
     bgCanvasRef.current = target
   }, [originF0])
@@ -81,8 +86,7 @@ export function ProsodyCanvas({ originF0, userF0 = [], currentTime, duration, th
     if (!ctx) return
 
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    const bgSource = bgCanvasRef.current as CanvasImageSource
-    ctx.drawImage(bgSource, 0, 0)
+    ctx.drawImage(bgCanvasRef.current as CanvasImageSource, 0, 0)
 
     if (userF0.length > 1) {
       ctx.strokeStyle = 'rgba(37,99,235,0.85)'

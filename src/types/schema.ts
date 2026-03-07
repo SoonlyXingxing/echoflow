@@ -2,6 +2,12 @@ import { z } from 'zod'
 
 const nonEmpty = (label: string) => z.string().trim().min(1, `${label} 不能为空`)
 
+type CompareRequestInput = {
+  originF0: number[]
+  userF0: number[]
+  threshold: number
+}
+
 export const materialSchema = z.object({
   id: nonEmpty('id'),
   title: nonEmpty('title'),
@@ -28,7 +34,7 @@ export const compareRequestSchema = z
     userF0: pitchSeriesSchema,
     threshold: z.number().positive().default(18)
   })
-  .superRefine((value: { originF0: number[]; userF0: number[]; threshold: number }, ctx: z.RefinementCtx) => {
+  .superRefine((value: CompareRequestInput, ctx: z.RefinementCtx) => {
     const delta = Math.abs(value.originF0.length - value.userF0.length)
     if (delta > 20) {
       ctx.addIssue({
